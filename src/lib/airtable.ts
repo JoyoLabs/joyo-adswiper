@@ -14,7 +14,7 @@ export async function getAds(): Promise<Ad[]> {
       })
       .all();
 
-    return records.map((record: AirtableRecord) => ({
+    return records.map((record: any): Ad => ({
       id: record.id,
       pageName: record.fields['Page Name'] || '',
       title: record.fields['Title'] || '',

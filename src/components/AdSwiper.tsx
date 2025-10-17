@@ -17,7 +17,11 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentAd = ads[currentIndex];
     if (currentAd) {
-      setSwipedAds(prev => new Set([...prev, currentAd.id]));
+      setSwipedAds(prev => {
+        const newSet = new Set(prev);
+        newSet.add(currentAd.id);
+        return newSet;
+      });
       setCurrentIndex(prev => prev + 1);
     }
   };
@@ -25,7 +29,11 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
   const handleScore = (score: number) => {
     const currentAd = ads[currentIndex];
     if (currentAd) {
-      setScores(prev => new Map([...prev, [currentAd.id, score]]));
+      setScores(prev => {
+        const newMap = new Map(prev);
+        newMap.set(currentAd.id, score);
+        return newMap;
+      });
       // Go to next video immediately
       handleSwipe('right');
     }
