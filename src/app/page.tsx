@@ -1,10 +1,11 @@
 import { Suspense } from 'react';
 import AdSwiper from '@/components/AdSwiper';
 import { getAds } from '@/lib/airtable';
+import { Ad } from '@/types/ad';
 
 export default async function Home() {
-  let ads = [];
-  let error = null;
+  let ads: Ad[] = [];
+  let error: string | null = null;
 
   try {
     ads = await getAds();
