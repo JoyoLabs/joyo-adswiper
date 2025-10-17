@@ -7,10 +7,11 @@ import { Ad } from '@/types/ad';
 interface VideoCardProps {
   ad: Ad;
   onSwipe: (direction: 'left' | 'right') => void;
+  onScore: (score: number) => void;
   isActive: boolean;
 }
 
-export default function VideoCard({ ad, onSwipe, isActive }: VideoCardProps) {
+export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardProps) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -193,25 +194,30 @@ export default function VideoCard({ ad, onSwipe, isActive }: VideoCardProps) {
         </div>
       </div>
 
-      {/* Dedicated Action Buttons Section */}
-      <div className="h-16 bg-gray-50 flex items-center justify-center space-x-6 px-4 rounded-b-2xl">
-        <button
-          onClick={() => onSwipe('left')}
-          className="w-14 h-14 bg-red-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-red-600 transition-all duration-200 hover:scale-110 border-2 border-white"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      {/* Scoring Section */}
+      <div className="bg-gray-50 p-4 rounded-b-2xl">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-semibold text-gray-700">Rate this ad (1-10)</h3>
+          <button
+            onClick={() => onSwipe('left')}
+            className="px-3 py-1 bg-red-500 text-white rounded-lg text-xs font-medium hover:bg-red-600 transition-colors duration-200 shadow-md hover:shadow-lg"
+          >
+            Skip
+          </button>
+        </div>
         
-        <button
-          onClick={() => onSwipe('right')}
-          className="w-14 h-14 bg-green-500 text-white rounded-full flex items-center justify-center shadow-xl hover:bg-green-600 transition-all duration-200 hover:scale-110 border-2 border-white"
-        >
-          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-          </svg>
-        </button>
+        {/* Score Buttons - Single Line */}
+        <div className="flex justify-center space-x-2">
+          {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((score) => (
+            <button
+              key={score}
+              onClick={() => onScore(score)}
+              className="w-8 h-8 bg-white text-gray-700 rounded-lg flex items-center justify-center text-xs font-semibold shadow-md hover:shadow-lg transition-all duration-200 hover:scale-110 border border-gray-200 hover:border-gray-300"
+            >
+              {score}
+            </button>
+          ))}
+        </div>
       </div>
     </motion.div>
   );

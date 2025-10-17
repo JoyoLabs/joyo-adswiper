@@ -12,6 +12,7 @@ interface AdSwiperProps {
 export default function AdSwiper({ ads }: AdSwiperProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [swipedAds, setSwipedAds] = useState<Set<string>>(new Set());
+  const [scores, setScores] = useState<Map<string, number>>(new Map());
 
   const handleSwipe = (direction: 'left' | 'right') => {
     const currentAd = ads[currentIndex];
@@ -21,9 +22,19 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
     }
   };
 
+  const handleScore = (score: number) => {
+    const currentAd = ads[currentIndex];
+    if (currentAd) {
+      setScores(prev => new Map([...prev, [currentAd.id, score]]));
+      // Go to next video immediately
+      handleSwipe('right');
+    }
+  };
+
   const handleReset = () => {
     setCurrentIndex(0);
     setSwipedAds(new Set());
+    setScores(new Map());
   };
 
   const currentAd = ads[currentIndex];
@@ -42,11 +53,20 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
   }
 
   if (currentIndex >= ads.length) {
+    const averageScore = scores.size > 0 
+      ? Array.from(scores.values()).reduce((sum, score) => sum + score, 0) / scores.size 
+      : 0;
+
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center">
           <h2 className="text-2xl font-bold text-gray-600 mb-4">All caught up!</h2>
-          <p className="text-gray-500 mb-6">You've seen all available ads.</p>
+          <p className="text-gray-500 mb-2">You've scored {scores.size} ads</p>
+          {scores.size > 0 && (
+            <p className="text-gray-500 mb-6">
+              Average score: <span className="font-semibold text-primary-600">{averageScore.toFixed(1)}/10</span>
+            </p>
+          )}
           <button
             onClick={handleReset}
             className="bg-primary-500 text-white px-6 py-3 rounded-full font-semibold hover:bg-primary-600 transition-colors"
@@ -73,6 +93,7 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
             <VideoCard
               ad={currentAd}
               onSwipe={handleSwipe}
+              onScore={handleScore}
               isActive={true}
             />
           </motion.div>
@@ -90,6 +111,7 @@ export default function AdSwiper({ ads }: AdSwiperProps) {
           <VideoCard
             ad={nextAd}
             onSwipe={() => {}}
+            onScore={() => {}}
             isActive={false}
           />
         </motion.div>
