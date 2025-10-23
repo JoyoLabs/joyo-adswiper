@@ -15,9 +15,27 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
   const [isPlaying, setIsPlaying] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const iframeRef = useRef<HTMLIFrameElement>(null);
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-30, 30]);
   const opacity = useTransform(x, [-200, -100, 0, 100, 200], [0, 1, 1, 1, 0]);
+
+  // Check if the video URL is a Cloudinary player embed URL
+  const isCloudinaryPlayer = ad.videoUrl?.includes('player.cloudinary.com');
+
+  // Modify Cloudinary URL to set autoplay based on isActive
+  const getVideoUrl = () => {
+    if (!ad.videoUrl) return '';
+
+    if (isCloudinaryPlayer) {
+      // Remove existing autoplay param and add new one based on isActive
+      const url = new URL(ad.videoUrl);
+      url.searchParams.set('autoplay', isActive ? 'true' : 'false');
+      return url.toString();
+    }
+
+    return ad.videoUrl;
+  };
 
   const handleDragEnd = (_event: unknown, info: PanInfo) => {
     const threshold = 50; // Reduced from 100 to 50 for easier swiping
@@ -29,7 +47,13 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
   };
 
   const handlePlayPause = () => {
-    if (videoRef.current) {
+    if (isCloudinaryPlayer && iframeRef.current) {
+      // For Cloudinary player, send postMessage to control playback
+      const iframe = iframeRef.current;
+      const command = isPlaying ? 'pause' : 'play';
+      iframe.contentWindow?.postMessage({ type: command }, '*');
+      setIsPlaying(!isPlaying);
+    } else if (videoRef.current) {
       if (isPlaying) {
         videoRef.current.pause();
       } else {
@@ -40,7 +64,12 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
   };
 
   const handleMuteToggle = () => {
-    if (videoRef.current) {
+    if (isCloudinaryPlayer && iframeRef.current) {
+      // For Cloudinary player, send postMessage to control mute
+      const iframe = iframeRef.current;
+      iframe.contentWindow?.postMessage({ type: isMuted ? 'unmute' : 'mute' }, '*');
+      setIsMuted(!isMuted);
+    } else if (videoRef.current) {
       videoRef.current.muted = !isMuted;
       setIsMuted(!isMuted);
     }
@@ -64,14 +93,24 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
   };
 
   useEffect(() => {
-    if (isActive && videoRef.current) {
-      videoRef.current.play();
-      setIsPlaying(true);
-    } else if (videoRef.current) {
-      videoRef.current.pause();
-      setIsPlaying(false);
+    if (isActive) {
+      if (isCloudinaryPlayer) {
+        // Cloudinary player autoplays via URL params
+        setIsPlaying(true);
+      } else if (videoRef.current) {
+        videoRef.current.play();
+        setIsPlaying(true);
+      }
+    } else {
+      if (isCloudinaryPlayer) {
+        // Pause is handled by card becoming inactive
+        setIsPlaying(false);
+      } else if (videoRef.current) {
+        videoRef.current.pause();
+        setIsPlaying(false);
+      }
     }
-  }, [isActive]);
+  }, [isActive, isCloudinaryPlayer]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return 'N/A';
@@ -106,16 +145,37 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
       <div className="relative h-3/5 bg-black">
 
         {ad.videoUrl ? (
-          <video
-            ref={videoRef}
-            className="w-full h-full object-contain"
-            loop
-            muted={isMuted}
-            playsInline
-          >
-            <source src={ad.videoUrl} type="video/mp4" />
-            Your browser does not support the video tag.
-          </video>
+          isCloudinaryPlayer ? (
+            isActive ? (
+              <iframe
+                ref={iframeRef}
+                src={getVideoUrl()}
+                className="w-full h-full"
+                allow="autoplay; fullscreen; encrypted-media; picture-in-picture"
+                allowFullScreen
+                style={{ border: 'none' }}
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-gray-900">
+                <div className="text-white text-center">
+                  <svg className="w-16 h-16 mx-auto mb-4 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
+                  </svg>
+                </div>
+              </div>
+            )
+          ) : (
+            <video
+              ref={videoRef}
+              className="w-full h-full object-contain"
+              loop
+              muted={isMuted}
+              playsInline
+            >
+              <source src={ad.videoUrl} type="video/mp4" />
+              Your browser does not support the video tag.
+            </video>
+          )
         ) : (
           <div className="w-full h-full flex items-center justify-center text-white text-center p-8">
             <div>
@@ -127,8 +187,8 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
           </div>
         )}
         
-        {/* Play/Pause Overlay - Only show when video is available */}
-        {ad.videoUrl && (
+        {/* Play/Pause Overlay - Only show for non-Cloudinary videos */}
+        {ad.videoUrl && !isCloudinaryPlayer && (
           <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-30 hover:bg-opacity-40 transition-all duration-200">
             <button
               onClick={handlePlayPause}
@@ -146,8 +206,8 @@ export default function VideoCard({ ad, onSwipe, onScore, isActive }: VideoCardP
           </div>
         )}
 
-        {/* Audio Control Button */}
-        {ad.videoUrl && (
+        {/* Audio Control Button - Only show for non-Cloudinary videos */}
+        {ad.videoUrl && !isCloudinaryPlayer && (
           <button
             onClick={handleMuteToggle}
             className="absolute top-4 right-4 w-10 h-10 bg-black bg-opacity-50 text-white rounded-full flex items-center justify-center hover:bg-opacity-70 transition-all duration-200 z-20"
