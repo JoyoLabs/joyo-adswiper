@@ -42,8 +42,7 @@ export default async function Home() {
     <div className="min-h-screen bg-gradient-to-br from-primary-50 to-primary-100">
       <div className="container mx-auto px-4 py-8">
         <div className="text-center mb-8">
-          <h1 className="text-4xl font-bold text-gray-800 mb-2">Competitor Ad Swiper</h1>
-          <p className="text-gray-600">Swipe through competitor ads like Tinder</p>
+          <h1 className="text-4xl font-bold text-gray-800 mb-2">Joyolabs Ad Swiper</h1>
         </div>
         
         <div className="w-full max-w-sm sm:max-w-md md:max-w-lg lg:max-w-xl mx-auto h-[80vh] min-h-[650px] max-h-[900px] relative">

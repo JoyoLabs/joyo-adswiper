@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm run build:*)",
+      "Bash(node test-cloudinary-conversion.js:*)",
+      "Bash(del test-cloudinary-conversion.js)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

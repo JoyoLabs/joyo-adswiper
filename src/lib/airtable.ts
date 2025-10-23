@@ -1,5 +1,6 @@
 import Airtable from 'airtable';
 import { Ad, AirtableRecord } from '@/types/ad';
+import { convertToCloudinaryPlayerUrl } from './cloudinary';
 
 const base = new Airtable({
   apiKey: process.env.AIRTABLE_ACCESS_TOKEN,
@@ -19,7 +20,7 @@ export async function getAds(): Promise<Ad[]> {
       pageName: record.fields['Page Name'] || '',
       title: record.fields['Title'] || '',
       body: record.fields['Body'] || '',
-      videoUrl: record.fields['Media Link'] || '',
+      videoUrl: convertToCloudinaryPlayerUrl(record.fields['Media Link'] || ''),
       firstSeen: record.fields['First Seen'] || '',
       lastSeen: record.fields['Last Seen'] || '',
     }));
