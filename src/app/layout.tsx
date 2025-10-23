@@ -5,8 +5,8 @@ import './globals.css';
 const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
-  title: 'Joyolabs Ad Swiper',
-  description: 'Rate and review competitor ads',
+  title: 'Competitor Ad Swiper',
+  description: 'Swipe through competitor ads like Tinder',
   viewport: 'width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no',
 };
 
